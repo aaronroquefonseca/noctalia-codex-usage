@@ -10,9 +10,9 @@ Item {
 
   property var pluginApi: null
   readonly property var service: pluginApi?.mainInstance?.codexService || null
-  readonly property var data: service?.payload ?? null
-  readonly property var primary: data?.rateLimits?.primary ?? null
-  readonly property var secondary: data?.rateLimits?.secondary ?? null
+  readonly property var payload: service?.payload ?? null
+  readonly property var primary: payload?.rateLimits?.primary ?? null
+  readonly property var secondary: payload?.rateLimits?.secondary ?? null
   readonly property real scale: Style.uiScaleRatio
 
   property real contentPreferredWidth: 320 * scale
@@ -99,7 +99,7 @@ Item {
       }
 
       NText {
-        text: String(data?.rateLimits?.planType ?? "")
+        text: String(payload?.rateLimits?.planType ?? "")
         pointSize: Style.fontSizeS
         color: Color.mOnSurfaceVariant
       }
@@ -131,7 +131,7 @@ Item {
     }
 
     RowLayout {
-      visible: data !== null
+      visible: payload !== null
       Layout.fillWidth: true
       spacing: Style.marginM
 
@@ -145,9 +145,9 @@ Item {
           anchors.centerIn: parent
           spacing: 0
           NText {
-            text: data?.rateLimits?.credits?.unlimited
+            text: payload?.rateLimits?.credits?.unlimited
               ? "∞"
-              : String(data?.rateLimits?.credits?.balance ?? "—")
+              : String(payload?.rateLimits?.credits?.balance ?? "—")
             pointSize: Style.fontSizeM
             font.weight: Font.DemiBold
           }
@@ -169,7 +169,7 @@ Item {
           anchors.centerIn: parent
           spacing: 0
           NText {
-            text: String(data?.resetCredits?.availableCount ?? "—")
+            text: String(payload?.resetCredits?.availableCount ?? "—")
             pointSize: Style.fontSizeM
             font.weight: Font.DemiBold
           }
