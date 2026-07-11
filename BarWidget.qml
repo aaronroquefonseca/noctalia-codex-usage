@@ -168,7 +168,10 @@ Item {
       return Edges.Bottom | Edges.Left;
     }
     anchor.adjustment: PopupAdjustment.Flip | PopupAdjustment.Slide
-    anchor.margins: 8
+    anchor.margins.top: root.barPosition === "top" ? 8 : 0
+    anchor.margins.bottom: root.barPosition === "bottom" ? 8 : 0
+    anchor.margins.left: root.barPosition === "left" ? 8 : 0
+    anchor.margins.right: root.barPosition === "right" ? 8 : 0
 
     Panel {
       id: popupContent
