@@ -151,7 +151,7 @@ Item {
     visible: false
     grabFocus: true
     color: "transparent"
-    width: 370
+    width: popupContent.implicitWidth
     height: popupContent.implicitHeight
 
     anchor.item: root
@@ -170,14 +170,6 @@ Item {
     anchor.adjustment: PopupAdjustment.Flip | PopupAdjustment.Slide
     anchor.margins: 8
 
-    Rectangle {
-      anchors.fill: parent
-      radius: Style.radiusL
-      color: Color.mSurface
-      border.color: Color.mOutline
-      border.width: 1
-    }
-
     Panel {
       id: popupContent
       anchors.fill: parent
@@ -185,6 +177,10 @@ Item {
       codexService: root.codexService
       screen: root.screen
       onRequestClose: usagePopup.visible = false
+      onRequestPreferences: {
+        usagePopup.visible = false;
+        BarService.openPluginSettings(root.screen, root.pluginApi.manifest);
+      }
     }
   }
 
