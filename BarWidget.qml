@@ -73,7 +73,7 @@ Item {
       autoHide: false
       customTextIconColor: root.statusColor
       tooltipText: "Codex usage"
-      onClicked: root.togglePopup()
+      onClicked: root.openPanel()
       onRightClicked: root.openContextMenu()
     }
   }
@@ -122,50 +122,19 @@ Item {
         cursorShape: Qt.PointingHandCursor
         onClicked: function(mouse) {
           if (mouse.button === Qt.RightButton) root.openContextMenu();
-          else root.togglePopup();
+          else root.openPanel();
         }
       }
     }
   }
 
-  PopupWindow {
-    id: usagePopup
-    visible: false
-    grabFocus: true
-    color: "transparent"
-    width: popupContent.implicitWidth
-    height: popupContent.implicitHeight
-
-    anchor.item: root
-    anchor.adjustment: PopupAdjustment.Flip | PopupAdjustment.Slide
-    anchor.edges: root.barPosition === "bottom" ? Edges.Top
-      : root.barPosition === "left" ? Edges.Right
-      : root.barPosition === "right" ? Edges.Left
-      : Edges.Bottom
-    anchor.gravity: anchor.edges
-    anchor.margins.top: root.barPosition === "top" ? 8 : 0
-    anchor.margins.bottom: root.barPosition === "bottom" ? 8 : 0
-    anchor.margins.left: root.barPosition === "left" ? 8 : 0
-    anchor.margins.right: root.barPosition === "right" ? 8 : 0
-    anchor.rect.x: root.verticalBar ? 0 : root.width / 2 - width / 2 - (root.section === "right" ? 24 : root.section === "left" ? -24 : 0)
-    anchor.rect.y: root.verticalBar ? root.height / 2 - height / 2 : 0
-
-    Panel {
-      id: popupContent
-      anchors.fill: parent
-      pluginApi: root.pluginApi
-      codexService: root.codexService
-      screen: root.screen
-      onRequestClose: usagePopup.visible = false
-      onRequestPreferences: {
-        usagePopup.visible = false;
-        BarService.openPluginSettings(root.screen, root.pluginApi.manifest);
-      }
-    }
+  function openPanel() {
+    pluginApi?.openPanel(root.screen, root);
   }
 
-  function togglePopup() { usagePopup.visible = !usagePopup.visible; }
-  function openContextMenu() { PanelService.showContextMenu(contextMenu, root, screen); }
+  function openContextMenu() {
+    PanelService.showContextMenu(contextMenu, root, screen);
+  }
 
   NPopupContextMenu {
     id: contextMenu
