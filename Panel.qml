@@ -1,15 +1,19 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Effects
+import Quickshell
 import qs.Commons
-import qs.Modules.Bar.Extras
 import qs.Widgets
 
-Item {
+Rectangle {
   id: root
 
   property var pluginApi: null
-  property var codexService: pluginApi?.mainInstance?.codexService || null
+  property var codexService: null
+  property ShellScreen screen
+
+  signal requestPreferences()
+  signal requestClose()
 
   readonly property var payload: codexService?.payload ?? null
   readonly property string fetchState: codexService?.fetchState ?? "idle"
@@ -63,22 +67,29 @@ Item {
     return "Updated at " + date.toLocaleTimeString(Qt.locale(), "HH:mm");
   }
 
-  implicitWidth: 380
-  implicitHeight: contentColumn.implicitHeight + Style.marginL * 2
+  implicitWidth: 350
+  implicitHeight: contentColumn.implicitHeight + Style.marginM * 2
+  radius: Style.radiusL
+  color: Color.mSurface
+  border.color: Color.mOutline
+  border.width: 1
+  clip: true
 
   ColumnLayout {
     id: contentColumn
-    anchors.fill: parent
-    anchors.margins: Style.marginL
-    spacing: Style.marginM
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: parent.top
+    anchors.margins: Style.marginM
+    spacing: Style.marginS
 
     RowLayout {
       Layout.fillWidth: true
-      spacing: Style.marginM
+      spacing: Style.marginS
 
       Item {
-        Layout.preferredWidth: Style.fontSizeXL
-        Layout.preferredHeight: Style.fontSizeXL
+        Layout.preferredWidth: Style.fontSizeL
+        Layout.preferredHeight: Style.fontSizeL
 
         Image {
           id: panelLogoSource
@@ -98,15 +109,15 @@ Item {
 
       NText {
         text: "Codex usage"
-        font.pixelSize: Style.fontSizeL
+        font.pixelSize: Style.fontSizeM
         font.bold: true
         color: Color.mOnSurface
         Layout.fillWidth: true
       }
 
       Rectangle {
-        Layout.preferredWidth: planLabel.implicitWidth + Style.marginM * 2
-        Layout.preferredHeight: planLabel.implicitHeight + Style.marginXS * 2
+        Layout.preferredWidth: planLabel.implicitWidth + Style.marginS * 2
+        Layout.preferredHeight: planLabel.implicitHeight + Style.marginXXS * 2
         radius: height / 2
         color: Color.mSurfaceVariant
 
@@ -114,7 +125,7 @@ Item {
           id: planLabel
           anchors.centerIn: parent
           text: root.planName()
-          font.pixelSize: Style.fontSizeS
+          font.pixelSize: Style.fontSizeXS
           font.bold: true
           color: Color.mOnSurfaceVariant
         }
@@ -155,33 +166,33 @@ Item {
 
     RowLayout {
       Layout.fillWidth: true
-      spacing: Style.marginM
+      spacing: Style.marginS
       visible: root.payload !== null
 
       Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: creditsColumn.implicitHeight + Style.marginM * 2
+        Layout.preferredHeight: creditsColumn.implicitHeight + Style.marginS * 2
         radius: Style.radiusM
         color: Color.mSurfaceVariant
 
         ColumnLayout {
           id: creditsColumn
           anchors.fill: parent
-          anchors.margins: Style.marginM
-          spacing: Style.marginXXS
+          anchors.margins: Style.marginS
+          spacing: 0
 
           NText {
             text: root.payload?.rateLimits?.credits?.unlimited
               ? "∞"
               : String(root.payload?.rateLimits?.credits?.balance ?? "—")
-            font.pixelSize: Style.fontSizeL
+            font.pixelSize: Style.fontSizeM
             font.bold: true
             color: Color.mOnSurface
           }
 
           NText {
             text: "Credits"
-            font.pixelSize: Style.fontSizeS
+            font.pixelSize: Style.fontSizeXS
             color: Color.mOnSurfaceVariant
           }
         }
@@ -189,26 +200,26 @@ Item {
 
       Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: resetsColumn.implicitHeight + Style.marginM * 2
+        Layout.preferredHeight: resetsColumn.implicitHeight + Style.marginS * 2
         radius: Style.radiusM
         color: Color.mSurfaceVariant
 
         ColumnLayout {
           id: resetsColumn
           anchors.fill: parent
-          anchors.margins: Style.marginM
-          spacing: Style.marginXXS
+          anchors.margins: Style.marginS
+          spacing: 0
 
           NText {
             text: String(root.payload?.resetCredits?.availableCount ?? "—")
-            font.pixelSize: Style.fontSizeL
+            font.pixelSize: Style.fontSizeM
             font.bold: true
             color: Color.mOnSurface
           }
 
           NText {
             text: "Limit resets"
-            font.pixelSize: Style.fontSizeS
+            font.pixelSize: Style.fontSizeXS
             color: Color.mOnSurfaceVariant
           }
         }
@@ -217,31 +228,29 @@ Item {
 
     NDivider {}
 
-    NText {
-      text: root.updatedText()
-      font.pixelSize: Style.fontSizeS
-      color: Color.mOnSurfaceVariant
-      Layout.fillWidth: true
-    }
-
     RowLayout {
       Layout.fillWidth: true
       spacing: Style.marginS
 
-      NButton {
+      NText {
+        text: root.updatedText()
+        font.pixelSize: Style.fontSizeXS
+        color: Color.mOnSurfaceVariant
         Layout.fillWidth: true
-        text: "Preferences"
-        icon: "settings"
-        outlined: true
-        onClicked: BarService.openPluginSettings(pluginApi.panelOpenScreen, pluginApi.manifest)
       }
 
       NButton {
-        Layout.fillWidth: true
+        text: "Preferences"
+        icon: "settings"
+        outlined: true
+        onClicked: root.requestPreferences()
+      }
+
+      NButton {
         text: root.fetchState === "loading" ? "Refreshing…" : "Refresh"
         icon: "refresh"
         enabled: root.fetchState !== "loading"
-        onClicked: codexService?.refresh()
+        onClicked: root.codexService?.refresh()
       }
     }
   }
