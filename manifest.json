@@ -1,0 +1,29 @@
+{
+  "id": "codex-usage",
+  "name": "Codex Usage",
+  "version": "1.0.0",
+  "minNoctaliaVersion": "4.4.0",
+  "author": "Aaron Roque Fonseca",
+  "official": false,
+  "license": "MIT",
+  "repository": "https://github.com/aaronroquefonseca/noctalia-codex-usage",
+  "description": "Shows OpenAI Codex 5-hour and weekly usage limits in the Noctalia bar.",
+  "tags": ["Bar", "Panel", "Utility", "System"],
+  "entryPoints": {
+    "main": "Main.qml",
+    "barWidget": "BarWidget.qml",
+    "panel": "Panel.qml",
+    "settings": "Settings.qml"
+  },
+  "dependencies": {
+    "plugins": []
+  },
+  "metadata": {
+    "defaultSettings": {
+      "panelStyle": "full",
+      "displayMode": "both",
+      "refreshIntervalSeconds": 300,
+      "codexPath": ""
+    }
+  }
+}
