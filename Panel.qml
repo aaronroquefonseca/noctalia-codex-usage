@@ -14,6 +14,32 @@ Item {
   readonly property var primary: payload?.rateLimits?.primary ?? null
   readonly property var secondary: payload?.rateLimits?.secondary ?? null
   readonly property real scale: Style.uiScaleRatio
+  property bool resetsExpanded: false
+
+  readonly property var availableResetCredits: {
+    var summary = payload?.resetCredits;
+    var source = summary?.credits;
+    if (!Array.isArray(source)) return [];
+    var available = [];
+    for (var i = 0; i < source.length; i++) {
+      var credit = source[i];
+      if (String(credit?.status ?? "").toLowerCase() === "available")
+        available.push(credit);
+    }
+    available.sort(function(a, b) {
+      var aExpiry = a?.expiresAt ?? Number.MAX_SAFE_INTEGER;
+      var bExpiry = b?.expiresAt ?? Number.MAX_SAFE_INTEGER;
+      return aExpiry - bExpiry;
+    });
+    var count = Number(summary?.availableCount);
+    if (!isFinite(count) || count < 0) count = available.length;
+    return available.slice(0, count);
+  }
+
+  readonly property int availableResetCount: {
+    var count = Number(payload?.resetCredits?.availableCount);
+    return isFinite(count) && count >= 0 ? count : availableResetCredits.length;
+  }
 
   property real contentPreferredWidth: 320 * scale
   property real contentPreferredHeight: body.implicitHeight + Style.marginL * 2
@@ -22,8 +48,7 @@ Item {
 
   function remaining(windowData) {
     return (!windowData || typeof windowData.usedPercent !== "number")
-      ? -1
-      : Math.max(0, Math.min(100, 100 - windowData.usedPercent));
+      ? -1 : Math.max(0, Math.min(100, 100 - windowData.usedPercent));
   }
 
   function windowName(minutes) {
@@ -45,6 +70,24 @@ Item {
       return "Resets in " + hours + "h" + (mins ? " " + mins + "m" : "");
     }
     return "Resets " + new Date(epoch * 1000).toLocaleString(Qt.locale(), "ddd HH:mm");
+  }
+
+  function resetTitle(credit) {
+    var title = String(credit?.title ?? "").trim();
+    return title.length > 0 ? title : "Full reset";
+  }
+
+  function resetExpiration(epoch) {
+    if (epoch === null || epoch === undefined) return "Does not expire";
+    var date = new Date(Number(epoch) * 1000);
+    if (isNaN(date.getTime())) return "Expiration unavailable";
+    return "Expires " + date.toLocaleTimeString(Qt.locale(), "HH:mm")
+      + " on " + date.toLocaleDateString(Qt.locale(), "d MMM yyyy");
+  }
+
+  function resetSummaryText() {
+    if (availableResetCount === 1) return "1 usage limit reset available.";
+    return availableResetCount + " usage limit resets available.";
   }
 
   function updatedText() {
@@ -73,7 +116,6 @@ Item {
       Item {
         Layout.preferredWidth: 22 * root.scale
         Layout.preferredHeight: 22 * root.scale
-
         Image {
           id: logo
           anchors.fill: parent
@@ -81,7 +123,6 @@ Item {
           source: Qt.resolvedUrl("icons/openai.svg")
           fillMode: Image.PreserveAspectFit
         }
-
         MultiEffect {
           anchors.fill: parent
           source: logo
@@ -140,55 +181,124 @@ Item {
         Layout.preferredHeight: 58 * root.scale
         radius: Style.radiusM
         color: Color.mSurfaceVariant
-
         ColumnLayout {
           anchors.centerIn: parent
           spacing: 0
           NText {
-            text: payload?.rateLimits?.credits?.unlimited
-              ? "∞"
-              : String(payload?.rateLimits?.credits?.balance ?? "—")
+            text: payload?.rateLimits?.credits?.unlimited ? "∞" : String(payload?.rateLimits?.credits?.balance ?? "—")
             pointSize: Style.fontSizeM
             font.weight: Font.DemiBold
           }
-          NText {
-            text: "Credits"
-            pointSize: Style.fontSizeS
-            color: Color.mOnSurfaceVariant
-          }
+          NText { text: "Credits"; pointSize: Style.fontSizeS; color: Color.mOnSurfaceVariant }
         }
       }
 
       Rectangle {
+        id: resetCard
         Layout.fillWidth: true
         Layout.preferredHeight: 58 * root.scale
         radius: Style.radiusM
-        color: Color.mSurfaceVariant
-
+        color: resetMouse.containsMouse ? Color.mHover : Color.mSurfaceVariant
         ColumnLayout {
           anchors.centerIn: parent
           spacing: 0
           NText {
-            text: String(payload?.resetCredits?.availableCount ?? "—")
+            text: String(root.availableResetCount)
             pointSize: Style.fontSizeM
             font.weight: Font.DemiBold
+            color: resetMouse.containsMouse ? Color.mOnHover : Color.mOnSurface
           }
           NText {
             text: "Limit resets"
             pointSize: Style.fontSizeS
-            color: Color.mOnSurfaceVariant
+            color: resetMouse.containsMouse ? Color.mOnHover : Color.mOnSurfaceVariant
           }
         }
+        NIcon {
+          anchors.right: parent.right
+          anchors.top: parent.top
+          anchors.margins: Style.marginS
+          icon: root.resetsExpanded ? "chevron-down" : "chevron-right"
+          pointSize: Style.fontSizeXS
+          color: resetMouse.containsMouse ? Color.mOnHover : Color.mOnSurfaceVariant
+        }
+        MouseArea {
+          id: resetMouse
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root.resetsExpanded = !root.resetsExpanded
+        }
+      }
+    }
+
+    ColumnLayout {
+      visible: payload !== null && root.resetsExpanded
+      Layout.fillWidth: true
+      spacing: Style.marginS
+
+      NText {
+        text: root.resetSummaryText()
+        pointSize: Style.fontSizeS
+        font.weight: Font.DemiBold
+        color: Color.mOnSurface
+        Layout.fillWidth: true
+      }
+
+      Repeater {
+        model: root.availableResetCredits
+        delegate: Rectangle {
+          id: resetCreditCard
+          property var credit: modelData
+          Layout.fillWidth: true
+          Layout.preferredHeight: resetDetail.implicitHeight + Style.marginM * 2
+          radius: Style.radiusM
+          color: Color.mSurfaceVariant
+          ColumnLayout {
+            id: resetDetail
+            anchors.fill: parent
+            anchors.margins: Style.marginM
+            spacing: Style.marginXS
+            NText {
+              text: root.resetTitle(resetCreditCard.credit)
+              pointSize: Style.fontSizeM
+              font.weight: Font.DemiBold
+              color: Color.mOnSurface
+              Layout.fillWidth: true
+              wrapMode: Text.WordWrap
+            }
+            NText {
+              text: root.resetExpiration(resetCreditCard.credit?.expiresAt)
+              pointSize: Style.fontSizeS
+              color: Color.mOnSurfaceVariant
+              Layout.fillWidth: true
+            }
+          }
+        }
+      }
+
+      NText {
+        visible: root.availableResetCount === 0
+        text: "You don't have any usage limit resets available."
+        pointSize: Style.fontSizeS
+        color: Color.mOnSurfaceVariant
+        Layout.fillWidth: true
+        wrapMode: Text.WordWrap
+      }
+
+      NText {
+        visible: root.availableResetCount > root.availableResetCredits.length
+        text: "Some reset expiration details are unavailable."
+        pointSize: Style.fontSizeS
+        color: Color.mOnSurfaceVariant
+        Layout.fillWidth: true
+        wrapMode: Text.WordWrap
       }
     }
 
     NDivider { Layout.fillWidth: true }
 
-    NText {
-      text: root.updatedText()
-      pointSize: Style.fontSizeS
-      color: Color.mOnSurfaceVariant
-    }
+    NText { text: root.updatedText(); pointSize: Style.fontSizeS; color: Color.mOnSurfaceVariant }
 
     NButton {
       Layout.fillWidth: true
