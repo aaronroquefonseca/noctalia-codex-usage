@@ -232,67 +232,90 @@ Item {
       }
     }
 
-    ColumnLayout {
-      visible: payload !== null && root.resetsExpanded
+    Item {
+      id: resetDetailsClip
       Layout.fillWidth: true
-      spacing: Style.marginS
+      implicitHeight: payload !== null && root.resetsExpanded ? resetDetails.implicitHeight : 0
+      opacity: payload !== null && root.resetsExpanded ? 1 : 0
+      clip: true
+      visible: implicitHeight > 0 || opacity > 0
 
-      NText {
-        text: root.resetSummaryText()
-        pointSize: Style.fontSizeS
-        font.weight: Font.DemiBold
-        color: Color.mOnSurface
-        Layout.fillWidth: true
-      }
-
-      Repeater {
-        model: root.availableResetCredits
-        delegate: Rectangle {
-          id: resetCreditCard
-          property var credit: modelData
-          Layout.fillWidth: true
-          Layout.preferredHeight: resetDetail.implicitHeight + Style.marginM * 2
-          radius: Style.radiusM
-          color: Color.mSurfaceVariant
-          ColumnLayout {
-            id: resetDetail
-            anchors.fill: parent
-            anchors.margins: Style.marginM
-            spacing: Style.marginXS
-            NText {
-              text: root.resetTitle(resetCreditCard.credit)
-              pointSize: Style.fontSizeM
-              font.weight: Font.DemiBold
-              color: Color.mOnSurface
-              Layout.fillWidth: true
-              wrapMode: Text.WordWrap
-            }
-            NText {
-              text: root.resetExpiration(resetCreditCard.credit?.expiresAt)
-              pointSize: Style.fontSizeS
-              color: Color.mOnSurfaceVariant
-              Layout.fillWidth: true
-            }
-          }
+      Behavior on implicitHeight {
+        NumberAnimation {
+          duration: Style.animationNormal
+          easing.type: Easing.OutCubic
         }
       }
 
-      NText {
-        visible: root.availableResetCount === 0
-        text: "You don't have any usage limit resets available."
-        pointSize: Style.fontSizeS
-        color: Color.mOnSurfaceVariant
-        Layout.fillWidth: true
-        wrapMode: Text.WordWrap
+      Behavior on opacity {
+        NumberAnimation {
+          duration: Style.animationFast
+          easing.type: Easing.OutQuad
+        }
       }
 
-      NText {
-        visible: root.availableResetCount > root.availableResetCredits.length
-        text: "Some reset expiration details are unavailable."
-        pointSize: Style.fontSizeS
-        color: Color.mOnSurfaceVariant
-        Layout.fillWidth: true
-        wrapMode: Text.WordWrap
+      ColumnLayout {
+        id: resetDetails
+        width: parent.width
+        spacing: Style.marginS
+
+        NText {
+          text: root.resetSummaryText()
+          pointSize: Style.fontSizeS
+          font.weight: Font.DemiBold
+          color: Color.mOnSurface
+          Layout.fillWidth: true
+        }
+
+        Repeater {
+          model: root.availableResetCredits
+          delegate: Rectangle {
+            id: resetCreditCard
+            property var credit: modelData
+            Layout.fillWidth: true
+            Layout.preferredHeight: resetDetail.implicitHeight + Style.marginM * 2
+            radius: Style.radiusM
+            color: Color.mSurfaceVariant
+            ColumnLayout {
+              id: resetDetail
+              anchors.fill: parent
+              anchors.margins: Style.marginM
+              spacing: Style.marginXS
+              NText {
+                text: root.resetTitle(resetCreditCard.credit)
+                pointSize: Style.fontSizeM
+                font.weight: Font.DemiBold
+                color: Color.mOnSurface
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+              }
+              NText {
+                text: root.resetExpiration(resetCreditCard.credit?.expiresAt)
+                pointSize: Style.fontSizeS
+                color: Color.mOnSurfaceVariant
+                Layout.fillWidth: true
+              }
+            }
+          }
+        }
+
+        NText {
+          visible: root.availableResetCount === 0
+          text: "You don't have any usage limit resets available."
+          pointSize: Style.fontSizeS
+          color: Color.mOnSurfaceVariant
+          Layout.fillWidth: true
+          wrapMode: Text.WordWrap
+        }
+
+        NText {
+          visible: root.availableResetCount > root.availableResetCredits.length
+          text: "Some reset expiration details are unavailable."
+          pointSize: Style.fontSizeS
+          color: Color.mOnSurfaceVariant
+          Layout.fillWidth: true
+          wrapMode: Text.WordWrap
+        }
       }
     }
 
