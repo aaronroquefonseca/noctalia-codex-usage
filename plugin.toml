@@ -1,13 +1,13 @@
 id = "aaronroquefonseca/codex-usage"
 name = "Codex Usage"
-version = "0.1.0-dev"
+version = "0.1.0"
 min_noctalia = "5.0.0"
 author = "Aaron Roque Fonseca"
 license = "MIT"
 description = "Shows OpenAI Codex usage limits and reset credits in Noctalia v5."
 tags = ["AI", "Development", "Utility"]
 dependencies = ["python3", "codex"]
-icon = "icons/openai.svg"
+icon = "code"
 
 [[setting]]
 key = "panel_style"
