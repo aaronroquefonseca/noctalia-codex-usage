@@ -66,3 +66,12 @@ height = 380
 placement = "floating"
 position = "auto"
 open_near_click = true
+
+[[panel]]
+id = "reset-details"
+entry = "v5/reset_details.luau"
+width = 360
+height = 500
+placement = "floating"
+position = "auto"
+open_near_click = true
