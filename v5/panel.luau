@@ -41,13 +41,7 @@ end
 
 local function usageCard(window, key)
   local value = remaining(window)
-  return ui.column({
-    key = key,
-    fill = "surface_variant",
-    radius = 12,
-    padding = 12,
-    gap = 7,
-  }, {
+  return ui.column({ key = key, fill = "surface_variant", radius = 12, padding = 12, gap = 7 }, {
     ui.row({ gap = 8, justify = "space_between", align = "center" }, {
       ui.label({ text = windowName(window.windowDurationMins), color = "on_surface", fontWeight = "semibold", flexGrow = 1 }),
       ui.label({ text = value and (value .. "%") or "—", color = severity(value), fontSize = 18, fontWeight = "bold" }),
@@ -78,19 +72,10 @@ local function expirationText(epoch)
   return "Expires " .. noctalia.formatTime("%H:%M on %d %b %Y", epoch)
 end
 
-local function statCard(value, label, key, callback)
-  return ui.column({
-    key = key,
-    flexGrow = 1,
-    fill = "surface_variant",
-    radius = 12,
-    padding = 10,
-    gap = 2,
-    align = "center",
-    onClick = callback,
-  }, {
+local function creditCard(value)
+  return ui.column({ key = "credits", flexGrow = 1, fill = "surface_variant", radius = 12, padding = 10, gap = 2, align = "center" }, {
     ui.label({ text = tostring(value), color = "on_surface", fontSize = 17, fontWeight = "bold", textAlign = "center" }),
-    ui.label({ text = label, color = "on_surface_variant", fontSize = 12, textAlign = "center" }),
+    ui.label({ text = "Credits", color = "on_surface_variant", fontSize = 12, textAlign = "center" }),
   })
 end
 
@@ -116,9 +101,16 @@ local function render()
   local credits = type(limits.credits) == "table" and limits.credits or {}
   local available, availableCount = resetCredits()
   local creditValue = credits.unlimited and "∞" or tostring(credits.balance or "—")
-  table.insert(children, ui.row({ gap = 10 }, {
-    statCard(creditValue, "Credits", "credits", nil),
-    statCard(availableCount, resetsExpanded and "Hide resets" or "Limit resets", "resets", "onToggleResets"),
+  table.insert(children, ui.row({ gap = 10, align = "stretch" }, {
+    creditCard(creditValue),
+    ui.button({
+      key = "resets",
+      text = tostring(availableCount) .. "  " .. (resetsExpanded and "Hide resets" or "Limit resets"),
+      glyph = resetsExpanded and "chevron-up" or "chevron-down",
+      variant = "secondary",
+      flexGrow = 1,
+      onClick = "onToggleResets",
+    }),
   }))
 
   if resetsExpanded then
