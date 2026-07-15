@@ -1,5 +1,6 @@
 local PANEL_ID = "aaronroquefonseca/codex-usage:details"
 local state = noctalia.state.get("usage") or { loading = true }
+local refreshSequence = 0
 
 local function clamp(value)
   return math.max(0, math.min(100, value))
@@ -69,5 +70,6 @@ function onClick()
 end
 
 function onRightClick()
-  noctalia.state.set("refresh_request", { token = tostring(os.time()) .. ":bar" })
+  refreshSequence = refreshSequence + 1
+  noctalia.state.set("refresh_request", { token = tostring(os.time()) .. ":bar:" .. refreshSequence })
 end
