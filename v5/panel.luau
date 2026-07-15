@@ -1,6 +1,7 @@
 local state = noctalia.state.get("usage") or { loading = true }
 local resetsExpanded = false
 local refreshSequence = 0
+local iconPath = noctalia.pluginDir() .. "/../icons/openai.svg"
 
 local function clamp(value)
   return math.max(0, math.min(100, value))
@@ -84,7 +85,7 @@ local function render()
   local children = {}
 
   table.insert(children, ui.row({ gap = 10, align = "center" }, {
-    ui.image({ path = "../icons/openai.svg", width = 22, height = 22, fit = "contain" }),
+    ui.image({ path = iconPath, width = 22, height = 22, fit = "contain" }),
     ui.label({ text = "Codex usage", color = "on_surface", fontSize = 19, fontWeight = "bold", flexGrow = 1 }),
     ui.label({ text = tostring(limits.planType or ""), color = "on_surface_variant", fontSize = 12 }),
   }))
@@ -107,7 +108,7 @@ local function render()
       key = "resets",
       text = tostring(availableCount) .. "  " .. (resetsExpanded and "Hide resets" or "Limit resets"),
       glyph = resetsExpanded and "chevron-up" or "chevron-down",
-      variant = "secondary",
+      variant = "outline",
       flexGrow = 1,
       onClick = "onToggleResets",
     }),
